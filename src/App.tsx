@@ -88,7 +88,14 @@ const formSerialize = (formElement: HTMLFormElement) => {
   if(Object.getOwnPropertyNames(values).length !== inputs.length)
     return;
   
-  console.log(values);
+  const dataValues: { [key: string]: string|number } = {}
+  dataValues['version_code'] = values['version_code'];
+  dataValues['version_name'] = values['version_name'];
+
+  const finalValues: { [key: string]: string|number|object } = {};
+  finalValues['password'] = values['password'];
+  finalValues['data'] = dataValues;
+  console.log(finalValues);
   showSuccess();
 }
 
