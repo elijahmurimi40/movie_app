@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React, { MouseEvent, useRef, useState, MutableRefObject, Dispatch, SetStateAction } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 import { Divider, Form, Header, Message } from 'semantic-ui-react';
@@ -40,7 +41,7 @@ function App() {
               <Form.Input label='Password' placeholder='Password' type='password' name='password' />
               <div className='field'>
                 <div className='ui negative message hide' ref={errorMessage}>All Fields Are Required</div>
-                <div className='ui positive message hide' ref={successMessage}>Success</div>
+                <div className='ui positive message hide' ref={successMessage}>Successfully Updated</div>
                 </div>
               <a href='update' 
                 className='ui fluid blue submit button' 
@@ -78,7 +79,7 @@ const formSerialize = (formElement: HTMLFormElement) => {
   for (let i = 0; i < inputs.length; i++) {
     const input = inputs[i] as HTMLInputElement;
     if(input.value.trim() === ''){
-      showError();
+      showError('All Fields Are Required');
       break;
     }
 
@@ -95,8 +96,35 @@ const formSerialize = (formElement: HTMLFormElement) => {
   const finalValues: { [key: string]: string|number|object } = {};
   finalValues['password'] = values['password'];
   finalValues['data'] = dataValues;
-  console.log(finalValues);
-  showSuccess();
+
+  const axiosConfig = {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  };
+
+  axios.post('https://movieappversioncodeandnamephp.herokuapp.com/insert', finalValues, axiosConfig)
+    .then(res => {
+      const status = res.data.error;
+
+      if(status !== undefined && status.status !== 200) {
+        showError(res.data.error.message);
+      } else {
+        showSuccess();
+      }
+    })
+    .catch(err => {
+      /**
+       * if(err.response) {
+       * // client received an error response (5xx, 4xx)
+       * } else if(err.request) {
+       * // client never received a response, or request never left
+       * } else {
+       * // anything else
+       * } 
+       */
+    showError('Error connecting to server try again.');
+    });
 }
 
 const removeAddClassess = (
@@ -113,7 +141,8 @@ const removeAddClassess = (
 
 }
 
-const showError = () => {
+const showError = (errorMsg: string) => {
+  errorMessage.current!!.innerText = errorMsg;
   removeAddClassess(errorMessage.current!!, hideClass, []);
   removeAddClassess(successMessage.current!!, [], hideClass);
   removeAddClassess(submitButton.current!!, submitButtonLoading, submitButtonNormal);
